@@ -4,7 +4,9 @@ const path = require('path');
 const rootDir = require('../util/path');
 const p = path.join(rootDir, 'data', 'products.json');
 
-const getDataFromFile = (cb) => {
+const Cart = require('./cart');
+
+const getProductsFromFile = (cb) => {
   fs.readFile(p, (error, fileContent) => {
     if (error) {
       console.log(error);
@@ -16,7 +18,8 @@ const getDataFromFile = (cb) => {
 };
 
 module.exports = class Product {
-  constructor(title, imageUrl, price, description) {
+  constructor(id, title, imageUrl, price, description) {
+    this.id = id;
     this.title = title;
     this.imageUrl = imageUrl;
     this.price = price;
@@ -24,15 +27,46 @@ module.exports = class Product {
   }
 
   save() {
-    getDataFromFile((products) => {
-      products.push(this);
-      fs.writeFile(p, JSON.stringify(products), (error) => {
-        console.log(error);
-      });
+    getProductsFromFile((products) => {
+      if (this.id) {
+        const existingProductIndex = products.findIndex(
+          (prod) => prod.id === this.id
+        );
+        const updatedProducts = [...products];
+        updatedProducts[existingProductIndex] = this;
+        fs.writeFile(p, JSON.stringify(updatedProducts), (error) => {
+          console.log(error);
+        });
+      } else {
+        this.id = Math.random().toString();
+        products.push(this);
+        fs.writeFile(p, JSON.stringify(products), (error) => {
+          console.log(error);
+        });
+      }
     });
   }
 
   static fetchAllProducts(cb) {
-    getDataFromFile(cb);
+    getProductsFromFile(cb);
+  }
+
+  static findProductById(id, cb) {
+    getProductsFromFile((products) => {
+      const product = products.find((p) => p.id === id);
+      cb(product);
+    });
+  }
+
+  static deleteProductById(id) {
+    getProductsFromFile((products) => {
+      const product = products.find((product) => product.id === id);
+      const updatedProducts = products.filter((p) => p.id !== id);
+      fs.writeFile(p, JSON.stringify(updatedProducts), (error) => {
+        if (!error) {
+          Cart.deleteProduct(id, product.price);
+        }
+      });
+    });
   }
 };
