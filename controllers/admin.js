@@ -47,10 +47,14 @@ exports.postEditProduct = (req, res, next) => {
 exports.postAddProduct = (req, res, next) => {
   const { title, imageUrl, price, description } = req.body;
 
-  const product = new Product(null, title, imageUrl, price, description);
-  console.log('product', product);
-  product.save();
-  res.redirect('/');
+  const product = new Product(null, title, price, description, imageUrl);
+
+  product
+    .save()
+    .then(() => {
+      res.redirect('/');
+    })
+    .catch((error) => console.log(error));
 };
 
 exports.postDeleteProduct = (req, res, next) => {
