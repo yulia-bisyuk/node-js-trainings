@@ -14,34 +14,44 @@ exports.getEditProduct = (req, res, next) => {
     return res.redirect('/');
   }
   const productId = req.params.productId;
-  Product.findProductById(productId, (product) => {
-    if (!product) {
+  Product.findProductById(productId).then(([rows]) => {
+    if (!rows) {
       res.redirect('/');
     }
     res.render('admin/edit-product', {
       pageTitle: 'Edit Product',
       path: '/admin/edit-product',
       editing: editMode,
-      product: product,
+      product: rows,
     });
   });
+  // Product.findProductById(productId, (product) => {
+  //   if (!product) {
+  //     res.redirect('/');
+  //   }
+  //   res.render('admin/edit-product', {
+  //     pageTitle: 'Edit Product',
+  //     path: '/admin/edit-product',
+  //     editing: editMode,
+  //     product: product,
+  //   });
+  // });
 };
 
 exports.postEditProduct = (req, res, next) => {
-  const prodId = req.body.productId;
+  // const prodId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedImageUrl = req.body.imageUrl;
   const updatedPrice = req.body.price;
   const updatedDescription = req.body.description;
   const updatedProduct = new Product(
-    prodId,
+    // prodId,
     updatedTitle,
-    updatedImageUrl,
     updatedPrice,
-    updatedDescription
+    updatedDescription,
+    updatedImageUrl
   );
-  updatedProduct.save();
-  res.redirect('/admin/products');
+  updatedProduct.save().then(res.redirect('/admin/products'));
 };
 
 exports.postAddProduct = (req, res, next) => {
@@ -64,11 +74,18 @@ exports.postDeleteProduct = (req, res, next) => {
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAllProducts((products) => {
+  Product.fetchAllProducts().then(([rows]) => {
     res.render('admin/products', {
-      products: products,
+      products: rows,
       pageTitle: 'Admin Products',
       path: '/admin/products',
     });
   });
+  // Product.fetchAllProducts((products) => {
+  //   res.render('admin/products', {
+  //     products: products,
+  //     pageTitle: 'Admin Products',
+  //     path: '/admin/products',
+  //   });
+  // });
 };

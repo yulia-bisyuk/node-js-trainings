@@ -40,7 +40,7 @@ exports.getIndexPage = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   Cart.getCart((cart) => {
-    Product.fetchAllProducts((products) => {
+    Product.fetchAllProducts().then((products) => {
       const cartProducts = [];
       for (product of products) {
         const cartProductData = cart.products.find(
@@ -56,6 +56,22 @@ exports.getCart = (req, res, next) => {
         products: cartProducts,
       });
     });
+    // Product.fetchAllProducts((products) => {
+    //   const cartProducts = [];
+    //   for (product of products) {
+    //     const cartProductData = cart.products.find(
+    //       (prod) => product.id === prod.id
+    //     );
+    //     if (cartProductData) {
+    //       cartProducts.push({ productData: product, qty: cartProductData.qty });
+    //     }
+    //   }
+    //   res.render('shop/cart', {
+    //     pageTitle: 'Cart',
+    //     path: '/cart',
+    //     products: cartProducts,
+    //   });
+    // });
   });
 };
 
