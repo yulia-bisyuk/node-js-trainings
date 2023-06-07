@@ -46,7 +46,7 @@ User.hasMany(Order);
 Order.belongsToMany(Product, { through: OrderItem });
 
 sequelize
-
+  // clears the tables
   //   .sync({ force: true })
   .sync()
   .then(() => {

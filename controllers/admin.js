@@ -63,13 +63,6 @@ exports.postAddProduct = (req, res, next) => {
       res.redirect('/admin/products');
     })
     .catch((err) => console.log(err));
-
-  // Product.create({ title, price, description, imageUrl })
-  //   .then(() => {
-  //     console.log('Product created!');
-  //     res.redirect('/admin/products');
-  //   })
-  //   .catch((err) => console.log(err));
 };
 
 exports.postDeleteProduct = (req, res, next) => {
