@@ -5,7 +5,21 @@
   <body>
    <%- include('../partials/header-nav.ejs') %>
     <main>
-        <h1>Orders Page</h1>
-        <h2>Nothing here!</h2>
+          <% if (orders.length <= 0) { %>
+                <h1>Nothing there!</h1>
+            <% } else { %>
+                <ul>
+                    <% orders.forEach(order => { %>
+                        <li>
+                            <h1># <%= order.id %></h1>
+                            <ul>
+                                <% order.products.forEach(product => { %>
+                                    <li><%= product.title %> (<%= product.orderItem.quantity %>)</li>
+                                <% }); %>
+                            </ul>
+                        </li>
+                    <% }); %>
+                </ul>
+            <% } %>
     </main>
  <%- include('../partials/end.ejs') %>
