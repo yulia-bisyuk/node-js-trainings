@@ -9,28 +9,28 @@ app.set('view engine', 'ejs');
 app.set('views', 'views');
 
 const rootDir = require('./util/path');
-const mongoConnect = require('./util/database');
+const mongoConnect = require('./util/database').mongoConnect;
+const User = require('./models/user');
 
-// const adminRoutes = require('./routes/admin');
-// const shopRoutes = require('./routes/shop');
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(rootDir, 'public')));
 
 app.use((req, res, next) => {
-  // User.findByPk(1)
-  //   .then((user) => {
-  //     req.user = user;
-  //     next();
-  //   })
-  //   .catch((err) => console.log(err));
+  User.findById('6482fc38f3d9ffd9581a1d7b')
+    .then((user) => {
+      req.user = new User(user.name, user.email, user.cart, user._id);
+      next();
+    })
+    .catch((err) => console.log(err));
 });
 
-// app.use('/admin', adminRoutes);
-// app.use(shopRoutes);
+app.use('/admin', adminRoutes);
+app.use(shopRoutes);
 app.use(errorController.get404);
 
-mongoConnect((client) => {
+mongoConnect(() => {
   app.listen(3000);
-  console.log(client);
 });

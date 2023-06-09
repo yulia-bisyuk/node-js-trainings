@@ -1,4 +1,3 @@
-// const mongodb = require('mongodb');
 const { MongoClient } = require('mongodb');
 
 const uri =
@@ -6,14 +5,25 @@ const uri =
 
 const client = new MongoClient(uri);
 
+let db;
+
 const mongoConnect = (callback) => {
   client
     .connect()
     .then((client) => {
-      callback(client);
+      db = client.db('shop');
+      callback();
       console.log('Connected');
     })
     .catch((err) => console.log(err));
 };
 
-module.exports = mongoConnect;
+const getDb = () => {
+  if (db) {
+    return db;
+  }
+  throw 'No database found!';
+};
+
+exports.mongoConnect = mongoConnect;
+exports.getDb = getDb;
