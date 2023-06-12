@@ -8,6 +8,25 @@ exports.getAddProduct = (req, res, next) => {
   });
 };
 
+exports.postAddProduct = (req, res, next) => {
+  const { title, price, description, imageUrl } = req.body;
+
+  const product = new Product({
+    title: title,
+    price: price,
+    description: description,
+    imageUrl: imageUrl,
+    userId: req.user,
+  });
+  product
+    .save()
+    .then((product) => {
+      console.log(product);
+      res.redirect('/admin/products');
+    })
+    .catch((err) => console.log(err));
+};
+
 exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit;
   if (!editMode) {
@@ -36,18 +55,14 @@ exports.postEditProduct = (req, res, next) => {
   const updatedPrice = req.body.price;
   const updatedDescription = req.body.description;
 
-  // const { id, title, imageUrl, price, description } = req.body;
-
-  const product = new Product(
-    updatedTitle,
-    updatedPrice,
-    updatedDescription,
-    updatedImageUrl,
-    prodId
-  );
-
-  product
-    .save()
+  Product.findById(prodId)
+    .then((product) => {
+      product.title = updatedTitle;
+      product.imageUrl = updatedImageUrl;
+      product.price = updatedPrice;
+      product.description = updatedDescription;
+      return product.save();
+    })
     .then(() => {
       console.log('Product updated!');
       res.redirect('/admin/products');
@@ -55,35 +70,19 @@ exports.postEditProduct = (req, res, next) => {
     .catch((err) => console.log(err));
 };
 
-exports.postAddProduct = (req, res, next) => {
-  const { title, imageUrl, price, description } = req.body;
-
-  const product = new Product(
-    title,
-    price,
-    description,
-    imageUrl,
-    null,
-    req.user._id
-  );
-  product
-    .save()
-    .then((product) => {
-      console.log(product);
-      res.redirect('/admin/products');
-    })
-    .catch((err) => console.log(err));
-};
-
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteById(prodId)
+  Product.findByIdAndRemove(prodId)
     .then(() => res.redirect('/admin/products'))
     .catch((err) => console.log(err));
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
+    // .select('title price') // you tell which fields will be retrieved from database
+    // .populate('userId') // tells mongoose to populate the certain field
+    // with all details information,
+    // not just the 'id' - it will be the full user object
     .then((products) => {
       res.render('admin/products', {
         products,
