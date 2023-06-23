@@ -5,6 +5,7 @@ exports.getAddProduct = (req, res, next) => {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
+    isLoggedIn: req.session.isLoggedIn,
   });
 };
 
@@ -20,8 +21,8 @@ exports.postAddProduct = (req, res, next) => {
   });
   product
     .save()
-    .then((product) => {
-      console.log(product);
+    .then(() => {
+      // console.log(product);
       res.redirect('/admin/products');
     })
     .catch((err) => console.log(err));
@@ -43,6 +44,7 @@ exports.getEditProduct = (req, res, next) => {
         path: '/admin/edit-product',
         editing: editMode,
         product,
+        isLoggedIn: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -84,10 +86,13 @@ exports.getProducts = (req, res, next) => {
     // with all details information,
     // not just the 'id' - it will be the full user object
     .then((products) => {
+      console.log(products);
+
       res.render('admin/products', {
         products,
         pageTitle: 'Admin Products',
         path: '/admin/products',
+        isLoggedIn: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
