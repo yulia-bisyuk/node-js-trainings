@@ -86,7 +86,7 @@ exports.getProducts = (req, res, next) => {
     // with all details information,
     // not just the 'id' - it will be the full user object
     .then((products) => {
-      console.log(products);
+      // console.log(`products: `, products);
 
       res.render('admin/products', {
         products,
