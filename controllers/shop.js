@@ -35,7 +35,6 @@ exports.getIndexPage = (req, res, next) => {
         products,
         pageTitle: 'Shop',
         path: '/',
-        isLoggedIn: req.session.isLoggedIn,
       });
     })
     .catch((error) => console.log(error));
@@ -51,7 +50,7 @@ exports.getCart = (req, res, next) => {
         pageTitle: 'Cart',
         path: '/cart',
         products: products,
-        isLoggedIn: req.session.isLoggedIn,
+        // isLoggedIn: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -88,7 +87,7 @@ exports.postOrder = (req, res, next) => {
       });
       const order = new Order({
         user: {
-          name: req.user.name,
+          email: req.user.email,
           userId: req.user,
         },
         products: products,
