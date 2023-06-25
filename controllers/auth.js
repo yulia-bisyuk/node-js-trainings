@@ -1,5 +1,9 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const sgMail = require('@sendgrid/mail');
+require('dotenv').config();
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.getLogin = (req, res, next) => {
   let message = req.flash('error');
@@ -85,7 +89,24 @@ exports.postSignup = (req, res, next) => {
 
           return user.save();
         })
-        .then(() => res.redirect('/login'));
+        .then(() => {
+          const msg = {
+            to: email,
+            from: 'yulia.bisyuk@gmail.com',
+            subject: 'Signup succeeded!',
+            text: 'and easy to do anywhere, even with Node.js',
+            html: '<h1>You successfully signed up!</h1><strong>and easy to do anywhere, even with Node.js</strong>',
+          };
+          res.redirect('/login');
+          sgMail
+            .send(msg)
+            .then(() => {
+              console.log('Email sent');
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        });
     })
     .catch((err) => console.log(err));
 };
