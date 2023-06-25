@@ -4,3 +4,10 @@
   margin: auto;
   display: block;
 }
+
+.reset-link {
+  display: block;
+  padding: 14px 0px;
+  color: #00695c;
+  text-decoration: none;
+}
