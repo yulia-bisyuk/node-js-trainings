@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
 require('dotenv').config();
+const { validationResult } = require('express-validator');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -22,6 +23,16 @@ exports.getLogin = (req, res, next) => {
 
 exports.postLogin = (req, res, next) => {
   const { email, password } = req.body;
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/login', {
+      pageTitle: 'Login',
+      path: '/login',
+      isLoggedIn: false,
+      errorMessage: errors.array()[0].msg,
+    });
+  }
 
   User.findOne({ email: email })
     .then((user) => {
@@ -72,42 +83,40 @@ exports.getSignup = (req, res, next) => {
 };
 
 exports.postSignup = (req, res, next) => {
-  const { email, password, confirmPassword } = req.body;
-  User.findOne({ email: email })
-    .then((userDoc) => {
-      if (userDoc) {
-        req.flash('error', 'Email already exists!');
-        return res.redirect('/signup');
-      }
-      return bcrypt
-        .hash(password, 12)
-        .then((hashedPassword) => {
-          const user = new User({
-            email: email,
-            password: hashedPassword,
-            cart: { items: [] },
-          });
+  const { email, password } = req.body;
+  const errors = validationResult(req);
 
-          return user.save();
-        })
-        .then(() => {
-          const msg = {
-            to: email,
-            from: 'yulia.bisyuk@gmail.com',
-            subject: 'Signup succeeded!',
-            text: 'and easy to do anywhere, even with Node.js',
-            html: '<h1>You successfully signed up!</h1><strong>and easy to do anywhere, even with Node.js</strong>',
-          };
-          res.redirect('/login');
-          sgMail
-            .send(msg)
-            .then(() => {
-              console.log('Email sent');
-            })
-            .catch((error) => {
-              console.error(error);
-            });
-        });
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/signup', {
+      pageTitle: 'Signup',
+      path: '/signup',
+      isLoggedIn: false,
+      errorMessage: errors.array()[0].msg,
+    });
+  }
+  bcrypt
+    .hash(password, 12)
+    .then((hashedPassword) => {
+      const user = new User({
+        email: email,
+        password: hashedPassword,
+        cart: { items: [] },
+      });
+
+      return user.save();
+    })
+    .then(() => {
+      const msg = {
+        to: email,
+        from: 'yulia.bisyuk@gmail.com',
+        subject: 'Signup succeeded!',
+        text: 'and easy to do anywhere, even with Node.js',
+        html: '<h1>You successfully signed up!</h1><strong>and easy to do anywhere, even with Node.js</strong>',
+      };
+      res.redirect('/login');
+      sgMail.send(msg).then(() => {
+        console.log('Email sent');
+      });
     })
     .catch((err) => console.log(err));
 };
