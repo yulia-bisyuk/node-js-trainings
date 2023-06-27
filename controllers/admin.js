@@ -29,7 +29,7 @@ exports.postAddProduct = (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(422).render('admin/edit-product', {
       pageTitle: 'Add Product',
-      path: '/admin/edit-product',
+      path: '/admin/add-product',
       editing: false,
       hasError: true,
       errorMessage: errors.array()[0].msg,
@@ -47,7 +47,32 @@ exports.postAddProduct = (req, res, next) => {
     .then(() => {
       res.redirect('/admin/products');
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      console.log(`err: `, err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      // returning next with error argument means that express.js will skip all next
+      // middlewares except those who handle errors
+      return next(error);
+
+      // we can redirect user to the Error Page - for handling bigger problems
+      // res.redirect('/500');
+      // we can redirect user to the same page
+      // return res.status(500).render('admin/edit-product', {
+      //   pageTitle: 'Add Product',
+      //   path: '/admin/add-product',
+      //   editing: false,
+      //   hasError: true,
+      //   errorMessage: 'Database operation failed! Try again!',
+      //   validationErrors: [],
+      //   product: {
+      //     title: title,
+      //     imageUrl: imageUrl,
+      //     price: price,
+      //     description: description,
+      //   },
+      // });
+    });
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -72,7 +97,11 @@ exports.getEditProduct = (req, res, next) => {
         isLoggedIn: req.session.isLoggedIn,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -116,14 +145,22 @@ exports.postEditProduct = (req, res, next) => {
         res.redirect('/admin/products');
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
   Product.deleteOne({ _id: prodId, userId: req.user._id })
     .then(() => res.redirect('/admin/products'))
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.getProducts = (req, res, next) => {
@@ -142,5 +179,9 @@ exports.getProducts = (req, res, next) => {
         isLoggedIn: req.session.isLoggedIn,
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
