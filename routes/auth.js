@@ -8,7 +8,10 @@ const User = require('../models/user');
 router.get('/login', authController.getLogin);
 router.post(
   '/login',
-  check('email').isEmail().withMessage('Please enter valid email'),
+  check('email')
+    .isEmail()
+    .withMessage('Please enter valid email')
+    .normalizeEmail(),
   //   check(
   //     'password',
   //     'Please enter the password only with numbers and text and with length more than 3 and less then 5 characters '
@@ -35,21 +38,25 @@ router.post(
             );
           }
         });
-      }),
+      })
+      .normalizeEmail(),
     // checks value only in the req.body
     body(
       'password',
       // error message for all checks below
       'Please enter the password only with numbers and text and with length more than 3 and less then 5 characters '
     )
+      .trim()
       .isLength({ min: 3, max: 5 })
       .isAlphanumeric(),
-    body('confirmPassword').custom((value, { req }) => {
-      if (value !== req.body.password) {
-        throw new Error('Passwords have to match');
-      }
-      return true;
-    }),
+    body('confirmPassword')
+      .trim()
+      .custom((value, { req }) => {
+        if (value !== req.body.password) {
+          throw new Error('Passwords have to match');
+        }
+        return true;
+      }),
   ],
   // you can write your custom validator e.g.
   // .custom((value, { req }) => {

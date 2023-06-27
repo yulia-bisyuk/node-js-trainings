@@ -254,6 +254,11 @@ form {
   color: red;
 }
 
+.form-control input.invalid,
+.form-control textarea.invalid {
+  border-color: red;
+}
+
 @media (min-width: 768px) {
   .main-header__nav {
     display: flex;
