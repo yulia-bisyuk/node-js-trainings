@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const bodyParser = require('body-parser');
+const multer = require('multer');
 const mongoose = require('mongoose');
 const session = require('express-session');
 const MongoDBStore = require('connect-mongodb-session')(session);
@@ -19,6 +20,32 @@ const store = new MongoDBStore({
   collection: 'mySessions',
 });
 
+const fileStorage = multer.diskStorage({
+  // sets the place for storing files
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  // provides unique name for file
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  },
+  //
+});
+
+//controls which files should be uploaded and which should be skipped
+const fileFilter = (req, file, cb) => {
+  if (
+    file.mimetype === 'image/png' ||
+    file.mimetype === 'image/jpg' ||
+    file.mimetype === 'image/jpeg'
+  ) {
+    cb(null, true);
+  } else {
+    cb(null, false);
+  }
+};
+
 const csrfProtection = csrf();
 
 app.set('view engine', 'ejs');
@@ -34,8 +61,13 @@ const authRoutes = require('./routes/auth');
 store.on('error', function (error) {
   console.log(error);
 });
-
+// bodyParser can't handle parsing file data, only string data
 app.use(bodyParser.urlencoded({ extended: false }));
+// use multer for parsing file data or mixed data ('image' - is a name of input with type='file')
+app.use(
+  multer({ storage: fileStorage, fileFilter: fileFilter }).single('image')
+);
+app.use('/images', express.static(path.join(rootDir, 'images')));
 app.use(express.static(path.join(rootDir, 'public')));
 app.use(
   session({

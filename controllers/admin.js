@@ -1,5 +1,6 @@
 const Product = require('../models/product');
 const { validationResult } = require('express-validator');
+const fileHelper = require('../util/file');
 
 exports.getAddProduct = (req, res, next) => {
   res.render('admin/edit-product', {
@@ -14,7 +15,45 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  const { title, price, description, imageUrl } = req.body;
+  const { title, price, description } = req.body;
+  const image = req.file;
+  const errors = validationResult(req);
+
+  if (!image) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
+      editing: false,
+      hasError: true,
+      errorMessage: 'Attached file is not an image',
+      validationErrors: [],
+      product: {
+        title: title,
+        price: price,
+        description: description,
+      },
+    });
+  }
+
+  if (!errors.isEmpty()) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/add-product',
+      editing: false,
+      hasError: true,
+      errorMessage: 'Attached file is not an image',
+      validationErrors: [],
+      product: {
+        title: title,
+        price: price,
+        description: description,
+      },
+    });
+  }
+
+  // adding slash / before product.imageUrl makes path absolute
+  // so it will not append it to the current path, but rather create a new path
+  const imageUrl = image.path;
 
   const product = new Product({
     title: title,
@@ -24,24 +63,6 @@ exports.postAddProduct = (req, res, next) => {
     userId: req.user,
   });
 
-  const errors = validationResult(req);
-
-  if (!errors.isEmpty()) {
-    return res.status(422).render('admin/edit-product', {
-      pageTitle: 'Add Product',
-      path: '/admin/add-product',
-      editing: false,
-      hasError: true,
-      errorMessage: errors.array()[0].msg,
-      validationErrors: errors.array(),
-      product: {
-        title: title,
-        imageUrl: imageUrl,
-        price: price,
-        description: description,
-      },
-    });
-  }
   product
     .save()
     .then(() => {
@@ -54,24 +75,6 @@ exports.postAddProduct = (req, res, next) => {
       // returning next with error argument means that express.js will skip all next
       // middlewares except those who handle errors
       return next(error);
-
-      // we can redirect user to the Error Page - for handling bigger problems
-      // res.redirect('/500');
-      // we can redirect user to the same page
-      // return res.status(500).render('admin/edit-product', {
-      //   pageTitle: 'Add Product',
-      //   path: '/admin/add-product',
-      //   editing: false,
-      //   hasError: true,
-      //   errorMessage: 'Database operation failed! Try again!',
-      //   validationErrors: [],
-      //   product: {
-      //     title: title,
-      //     imageUrl: imageUrl,
-      //     price: price,
-      //     description: description,
-      //   },
-      // });
     });
 };
 
@@ -107,7 +110,7 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
   const prodId = req.body.productId;
   const updatedTitle = req.body.title;
-  const updatedImageUrl = req.body.imageUrl;
+  const image = req.file;
   const updatedPrice = req.body.price;
   const updatedDescription = req.body.description;
 
@@ -124,7 +127,6 @@ exports.postEditProduct = (req, res, next) => {
       product: {
         _id: prodId,
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
         price: updatedPrice,
         description: updatedDescription,
       },
@@ -137,7 +139,10 @@ exports.postEditProduct = (req, res, next) => {
         return res.redirect('/');
       }
       product.title = updatedTitle;
-      product.imageUrl = updatedImageUrl;
+      if (image) {
+        fileHelper.deleteFile(product.imageUrl);
+        product.imageUrl = image.path;
+      }
       product.price = updatedPrice;
       product.description = updatedDescription;
       return product.save().then(() => {
@@ -154,7 +159,14 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.deleteOne({ _id: prodId, userId: req.user._id })
+  Product.findById(prodId)
+    .then((prod) => {
+      if (!prod) {
+        return next(new Error('Product not found'));
+      }
+      fileHelper.deleteFile(prod.imageUrl);
+      return Product.deleteOne({ _id: prodId, userId: req.user._id });
+    })
     .then(() => res.redirect('/admin/products'))
     .catch((err) => {
       const error = new Error(err);

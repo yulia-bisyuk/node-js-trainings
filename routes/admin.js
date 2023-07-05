@@ -17,7 +17,7 @@ router.post(
       .isLength({ min: 3 })
       .withMessage('Title should be a string with minimum 3 characters length'),
 
-    check('imageUrl').isURL().withMessage('Please enter valid URL'),
+    // check('imageUrl').isURL().withMessage('Please enter valid URL'),
 
     check('price')
       .isFloat()
@@ -42,7 +42,7 @@ router.post(
       .isString()
       .isLength({ min: 3 })
       .withMessage('Title should be a string with minimum 3 characters length'),
-    check('imageUrl').isURL().withMessage('Please enter valid URL'),
+    // check('imageUrl').isURL().withMessage('Please enter valid URL'),
     check('price')
       .isFloat()
       .withMessage('Price should be a number with floating point'),
