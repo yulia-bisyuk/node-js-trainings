@@ -157,8 +157,10 @@ exports.postEditProduct = (req, res, next) => {
     });
 };
 
-exports.postDeleteProduct = (req, res, next) => {
-  const prodId = req.body.productId;
+exports.deleteProduct = (req, res, next) => {
+  // delete method doesn't have body
+  // const prodId = req.body.productId;
+  const prodId = req.params.productId;
   Product.findById(prodId)
     .then((prod) => {
       if (!prod) {
@@ -167,11 +169,13 @@ exports.postDeleteProduct = (req, res, next) => {
       fileHelper.deleteFile(prod.imageUrl);
       return Product.deleteOne({ _id: prodId, userId: req.user._id });
     })
-    .then(() => res.redirect('/admin/products'))
+    // we don't want to render a new page (res.redirect), we just want to return some data
+    .then(() => res.status(200).json({ message: 'Success!' }))
     .catch((err) => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
+      res.status(500).json({ message: 'Deleting product is failed!' });
+      // const error = new Error(err);
+      // error.httpStatusCode = 500;
+      // return next(error);
     });
 };
 
