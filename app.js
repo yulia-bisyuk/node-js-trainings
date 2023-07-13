@@ -121,6 +121,7 @@ app.use(errorController.get404);
 // you can have multiple error handling middlewares
 // they will be executed one by one
 app.use((error, req, res, next) => {
+  console.log(`error: `, error);
   //res.status(error.httpCodeStatus).render(...);
   res.redirect('/500');
 });

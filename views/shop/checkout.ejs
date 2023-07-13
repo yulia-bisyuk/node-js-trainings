@@ -2,7 +2,31 @@
   </head>
   <body>
    <%- include('../partials/header-nav.ejs') %>
-    <main>
-        <h1>Checkout Page</h1>
-    </main>
+<main>
+
+  <ul class="cart__item-list"> 
+      <% products.forEach(p => { %> 
+    <li class="cart__item">
+        <h1><%= p.product.title %></h1>
+        <h2>Quantity: <%= p.quantity %></h2>
+    </li>
+ <% }) %>
+ </ul>
+
+  <div class="centered">
+    <h2>Total: <%= totalSum %></h2>
+  </div>
+
+  <div class="centered">
+    <button class="btn" id="order-btn">ORDER</button>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+      var stripe = Stripe('pk_test_51NT5xMIVFkpQYdOxhIXxx29ACCh3O0WaESW7YnqW4W3hD6oeNHo6QsVhU6vyWMLoOiZ8oddudqponILP9nT61Pfs00JYSkedHB');
+      const orderBtn = document.getElementById('order-btn');
+      orderBtn.addEventListener('click', function() {
+        stripe.redirectToCheckout({sessionId: '<%= sessionId %>'})})
+    </script>
+  </div>
+ 
+</main>
  <%- include('../partials/end.ejs') %>
